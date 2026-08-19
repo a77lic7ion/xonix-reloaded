@@ -2,6 +2,7 @@
 import { CanvasRenderer } from "./CanvasRenderer";
 import { GridBoard } from "./GridBoard";
 import { ScoreStore, type HighScore } from "./ScoreStore";
+import type { SfxName } from "./SfxManager";
 import { Cell, DIRECTION_VECTOR, isOpposite, type Direction, type Enemy, type GameMode, type Player, type Point } from "./types";
 
 const STEP_SECONDS = 0.075;
@@ -21,6 +22,11 @@ export interface GameEffect {
   x: number;
   y: number;
   startedAt: number;
+}
+
+export interface SoundEvent {
+  id: number;
+  name: SfxName;
 }
 
 export class GameWorld {
@@ -43,9 +49,11 @@ export class GameWorld {
   public qualifiesForHighScore = false;
   public toast: GameToast | null = null;
   public effect: GameEffect | null = null;
+  public soundEvent: SoundEvent | null = null;
   public settingsOpen = false;
   public musicEnabled = true;
   public sfxEnabled = true;
+  public currentTrack = "READY FOR PLAY";
   public readonly demo: boolean;
 
   private requestedDirection: Direction | null = null;
@@ -54,6 +62,7 @@ export class GameWorld {
   private stateTimer = 0;
   private demoTargetIndex = 0;
   private almostThereAnnounced = false;
+  private soundEventId = 0;
   private readonly demoTargets: Point[] = [
     { x: 12, y: 15 },
     { x: 27, y: 15 },
@@ -79,6 +88,10 @@ export class GameWorld {
 
   get highScores(): HighScore[] {
     return this.scoreStore.list();
+  }
+
+  setCurrentTrack(title: string) {
+    this.currentTrack = title;
   }
 
   update(deltaSeconds: number) {
@@ -166,14 +179,17 @@ export class GameWorld {
     if (!action) return;
     if (action === "start") {
       this.startNewGame();
+      this.emitSfx("ui");
       return;
     }
     if (action === "skillDown") {
       this.skill = Math.max(1, this.skill - 1);
+      this.emitSfx("ui");
       return;
     }
     if (action === "skillUp") {
       this.skill = Math.min(9, this.skill + 1);
+      this.emitSfx("ui");
       return;
     }
     if (action === "confirm") {
@@ -182,24 +198,29 @@ export class GameWorld {
     }
     if (action === "settings") {
       this.settingsOpen = true;
+      this.emitSfx("ui");
       return;
     }
     if (action === "closeSettings") {
       this.settingsOpen = false;
+      this.emitSfx("ui");
       return;
     }
     if (action === "toggleMusic") {
       this.musicEnabled = !this.musicEnabled;
+      this.emitSfx("toggle");
       return;
     }
     if (action === "toggleSfx") {
       this.sfxEnabled = !this.sfxEnabled;
+      this.emitSfx("toggle");
       return;
     }
     if (action === "mainMenu") {
       this.settingsOpen = false;
       this.mode = "title";
       this.player.direction = null;
+      this.emitSfx("ui");
       return;
     }
     if (action === "pause") {
@@ -304,7 +325,10 @@ export class GameWorld {
     const nextY = this.player.y + vector.y;
     const nextCell = this.board.get(nextX, nextY);
     if (!this.board.inBounds(nextX, nextY) || (!onLand && nextCell === Cell.Trail)) return;
-    if (onLand && nextCell !== Cell.Land) this.statusLine = "LIVE TRAIL EXPOSED";
+    if (onLand && nextCell !== Cell.Land) {
+      this.statusLine = "LIVE TRAIL EXPOSED";
+      this.emitSfx("trail");
+    }
 
     this.player.direction = direction;
     this.player.x = nextX;
@@ -320,6 +344,7 @@ export class GameWorld {
     this.score += newCells * multiplier;
     this.statusLine = newCells > 0 ? `SECTOR CLAIMED +${newCells * multiplier}` : "CUT CLOSED";
     this.effect = { kind: "closed", x: this.player.x, y: this.player.y, startedAt: this.visualTime };
+    this.emitSfx("close");
     this.showToast("CLOSED", newCells > 0 ? `+${newCells * multiplier} SCORE` : "ROUTE SEALED", "closed", 0.9);
     if (this.claimed >= 0.75 && !this.almostThereAnnounced) {
       this.almostThereAnnounced = true;
@@ -331,6 +356,7 @@ export class GameWorld {
       this.stateTimer = 1.35;
       this.statusLine = "TARGET SECURED";
       this.showToast("WELL DONE", "NEXT STAGE", "stage", 1.3);
+      this.emitSfx("clear");
     }
   }
 
@@ -398,6 +424,7 @@ export class GameWorld {
     this.lives -= 1;
     this.statusLine = reason;
     this.effect = { kind: "busted", x: this.player.x, y: this.player.y, startedAt: this.visualTime };
+    this.emitSfx("busted");
     this.showToast("BUSTED", this.lives > 0 ? "REBUILDING SAFE RAIL" : "LAST LIFE LOST", "busted", 1.05);
     if (this.lives <= 0) {
       this.mode = "gameOver";
@@ -421,5 +448,10 @@ export class GameWorld {
 
   private showToast(title: string, detail: string, kind: ToastKind, duration: number) {
     this.toast = { title, detail, kind, startedAt: this.visualTime, duration };
+  }
+
+  private emitSfx(name: SfxName) {
+    this.soundEventId += 1;
+    this.soundEvent = { id: this.soundEventId, name };
   }
 }

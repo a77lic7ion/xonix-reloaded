@@ -22,4 +22,13 @@
 - [x] Define the centred X marker, stage biome progression, and settings-menu interaction rules.
 - [x] Implement the X player, progressive palettes, and settings menu with music/SFX placeholders and main-menu return.
 - [x] Verify biome transitions and settings actions on desktop and mobile, then create a checkpoint.
-- [ ] Upload the verified completed project source to a77lic7ion/xonix-reloaded.
+- [x] Upload the verified completed project source to a77lic7ion/xonix-reloaded.
+- [x] Inspect supplied image and track formats for web-compatible title-screen and background-music use.
+- [x] Prepare the illustrated title artwork and randomized track assets for the deployed game.
+- [x] Replace the title screen while preserving the skill selector, and connect Music settings to randomized playback.
+- [x] Verify title layout, track rotation, and mute behaviour on desktop and mobile, then save a checkpoint.
+- [x] Source and document licence-compatible arcade sound effects for core game events.
+- [x] Prepare selected effects for durable web delivery.
+- [x] Connect effects to gameplay and interface events through the SFX setting.
+- [x] Verify mixed music/SFX behaviour on desktop and mobile, then save a checkpoint.
+- [ ] Update a77lic7ion/xonix-reloaded with all verified media and sound-effect changes.

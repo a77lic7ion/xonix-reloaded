@@ -9,8 +9,8 @@ export const SURFACE = {
   width: 1280,
   height: 960,
   board: { x: 54, y: 96, width: 1172, height: 730 },
-  titleSkillDown: { x: 448, y: 716, width: 92, height: 62 },
-  titleSkillUp: { x: 740, y: 716, width: 92, height: 62 },
+  titleSkillDown: { x: 246, y: 592, width: 90, height: 62 },
+  titleSkillUp: { x: 562, y: 592, width: 90, height: 62 },
   gameOverConfirm: { x: 455, y: 704, width: 370, height: 72 },
   settings: { x: 1052, y: 856, width: 148, height: 50 },
   settingsClose: { x: 838, y: 236, width: 36, height: 36 },
@@ -32,6 +32,12 @@ function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) { ctx.beginPath(); ctx.roundRect(x, y, width, height, radius); }
 
 export class CanvasRenderer {
+  private titleArt: CanvasImageSource | null = null;
+
+  setTitleArt(image: CanvasImageSource) {
+    this.titleArt = image;
+  }
+
   render(ctx: CanvasRenderingContext2D, world: GameWorld) {
     ctx.save();
     this.backdrop(ctx, world);
@@ -64,20 +70,26 @@ export class CanvasRenderer {
 
   private title(ctx: CanvasRenderingContext2D, world: GameWorld) {
     const palette = biomeForLevel(1);
-    const aura = ctx.createRadialGradient(640, 275, 10, 640, 275, 450);
-    aura.addColorStop(0, `${palette.player}44`); aura.addColorStop(1, "rgba(5,7,13,0)");
-    ctx.fillStyle = aura; ctx.fillRect(0, 0, SURFACE.width, 590);
-    ctx.fillStyle = palette.playerHot; ctx.font = "800 176px " + '"Space Grotesk", sans-serif'; ctx.textAlign = "center"; ctx.fillText("XONIX", 640, 292);
-    ctx.strokeStyle = `${palette.rail}99`; ctx.lineWidth = 2;
-    [252, 1028].forEach((x) => { for (let y = 132; y < 340; y += 30) { ctx.beginPath(); ctx.moveTo(x - 18, y); ctx.lineTo(x + 18, y + 11); ctx.lineTo(x - 18, y + 22); ctx.stroke(); } });
-    text(ctx, "ORIGINAL RULES · MODERN ARCADE", 640, 372, palette.rail, 18, "center", 700);
-    text(ctx, "SWIPE OR ARROW KEYS TO STEER", 640, 404, C.muted, 16, "center");
-    ctx.fillStyle = C.panel; roundRect(ctx, 380, 620, 520, 182, 20); ctx.fill(); ctx.strokeStyle = `${palette.rail}66`; ctx.lineWidth = 2; ctx.stroke();
-    text(ctx, "SELECT SKILL · 1–9", 640, 660, C.muted, 15, "center", 700);
-    text(ctx, "TAP ANYWHERE TO BEGIN", 640, 748, C.white, 21, "center", 700);
+    ctx.fillStyle = "#080B18"; roundRect(ctx, 60, 74, 1160, 720, 34); ctx.fill();
+    ctx.strokeStyle = `${palette.rail}AA`; ctx.lineWidth = 3; roundRect(ctx, 60, 74, 1160, 720, 34); ctx.stroke();
+    if (this.titleArt) {
+      ctx.save(); ctx.beginPath(); roundRect(ctx, 68, 82, 1144, 704, 28); ctx.clip();
+      ctx.globalAlpha = 0.92; ctx.drawImage(this.titleArt, 425, 80, 790, 706);
+      const readability = ctx.createLinearGradient(250, 0, 870, 0); readability.addColorStop(0, "rgba(8,11,24,1)"); readability.addColorStop(0.56, "rgba(8,11,24,0.76)"); readability.addColorStop(1, "rgba(8,11,24,0)"); ctx.fillStyle = readability; ctx.fillRect(68, 82, 880, 704);
+      const lowerFade = ctx.createLinearGradient(0, 590, 0, 790); lowerFade.addColorStop(0, "rgba(8,11,24,0)"); lowerFade.addColorStop(1, "rgba(8,11,24,0.88)"); ctx.fillStyle = lowerFade; ctx.fillRect(68, 500, 1144, 286); ctx.restore();
+    }
+    const aura = ctx.createRadialGradient(412, 260, 10, 412, 260, 330); aura.addColorStop(0, `${palette.player}66`); aura.addColorStop(1, "rgba(8,11,24,0)"); ctx.fillStyle = aura; ctx.fillRect(92, 100, 660, 420);
+    ctx.fillStyle = palette.playerHot; ctx.font = "800 140px " + '"Space Grotesk", sans-serif'; ctx.textAlign = "left"; ctx.fillText("XONIX", 180, 292);
+    text(ctx, "ORIGINAL RULES · MODERN ARCADE", 188, 340, palette.rail, 17, "left", 700);
+    text(ctx, "SWIPE OR ARROW KEYS TO STEER", 188, 370, C.muted, 15, "left");
+    ctx.fillStyle = "rgba(8,11,24,0.88)"; roundRect(ctx, 174, 502, 540, 196, 20); ctx.fill(); ctx.strokeStyle = `${palette.playerHot}BB`; ctx.lineWidth = 2; ctx.stroke();
+    text(ctx, "SELECT SKILL · 1–9", 444, 544, C.muted, 15, "center", 700);
+    text(ctx, "BEGIN", 620, 631, C.white, 20, "center", 800);
+    text(ctx, "TAP ANYWHERE TO DEPLOY", 444, 684, palette.rail, 13, "center", 700);
     this.skillButton(ctx, SURFACE.titleSkillDown, "−", palette); this.skillButton(ctx, SURFACE.titleSkillUp, "+", palette);
-    const skillGradient = ctx.createLinearGradient(580, 680, 700, 780); skillGradient.addColorStop(0, palette.playerHot); skillGradient.addColorStop(1, palette.player);
-    ctx.fillStyle = skillGradient; roundRect(ctx, 578, 683, 124, 94, 16); ctx.fill(); text(ctx, String(world.skill), 640, 749, C.white, 40, "center", 800); text(ctx, "SKILL", 640, 773, "rgba(255,255,255,0.72)", 12, "center", 700);
+    const skillGradient = ctx.createLinearGradient(360, 568, 500, 668); skillGradient.addColorStop(0, palette.playerHot); skillGradient.addColorStop(1, palette.player);
+    ctx.fillStyle = skillGradient; roundRect(ctx, 364, 570, 148, 104, 16); ctx.fill(); text(ctx, String(world.skill), 438, 640, C.white, 42, "center", 800); text(ctx, "SKILL", 438, 662, "rgba(255,255,255,0.78)", 12, "center", 700);
+    text(ctx, `TRACK · ${world.musicEnabled ? world.currentTrack : "MUTED"}`, 188, 744, C.muted, 12, "left", 700);
   }
 
   private skillButton(ctx: CanvasRenderingContext2D, rect: Rect, symbol: string, palette: BiomePalette) {
@@ -138,7 +150,7 @@ export class CanvasRenderer {
   private settings(ctx: CanvasRenderingContext2D, world: GameWorld) {
     const palette = biomeForLevel(world.level); ctx.fillStyle = "rgba(2,5,12,0.78)"; ctx.fillRect(0, 0, SURFACE.width, SURFACE.height); ctx.fillStyle = "rgba(14,22,40,0.98)"; roundRect(ctx, 370, 200, 540, 520, 24); ctx.fill(); ctx.strokeStyle = `${palette.rail}BB`; ctx.lineWidth = 2; ctx.stroke();
     text(ctx, "SETTINGS", 420, 270, C.white, 34, "left", 800); text(ctx, "GAME PAUSED", 420, 300, palette.rail, 13, "left", 700); text(ctx, "×", 856, 265, C.white, 28, "center", 600);
-    this.settingRow(ctx, SURFACE.settingsMusic, "MUSIC", world.musicEnabled, "READY", palette); this.settingRow(ctx, SURFACE.settingsSfx, "SFX", world.sfxEnabled, "READY", palette);
+    this.settingRow(ctx, SURFACE.settingsMusic, "MUSIC", world.musicEnabled, world.currentTrack, palette); this.settingRow(ctx, SURFACE.settingsSfx, "SFX", world.sfxEnabled, "READY", palette);
     ctx.fillStyle = "rgba(255,255,255,0.045)"; ctx.fillRect(420, 570, 440, 1); text(ctx, "Audio controls are ready for the upcoming music and effects pass.", 420, 595, C.muted, 12, "left", 500);
     ctx.fillStyle = `${palette.enemy}22`; roundRect(ctx, SURFACE.settingsMenu.x, SURFACE.settingsMenu.y, SURFACE.settingsMenu.width, SURFACE.settingsMenu.height, 12); ctx.fill(); ctx.strokeStyle = `${palette.enemy}99`; ctx.lineWidth = 1.5; ctx.stroke(); text(ctx, "RETURN TO MAIN MENU", 640, 651, C.white, 17, "center", 700);
   }

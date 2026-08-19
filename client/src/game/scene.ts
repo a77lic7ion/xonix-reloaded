@@ -11,6 +11,8 @@ import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { GameWorld } from "./GameWorld";
 import { InputManager } from "./InputManager";
+import { MusicManager } from "./MusicManager";
+import { SfxManager } from "./SfxManager";
 import { SURFACE } from "./CanvasRenderer";
 
 export interface GameHandle {
@@ -47,7 +49,34 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
   const isDemo = params.has("demo");
   const demoStage = Number(params.get("stage") ?? "1");
   const world = new GameWorld(isDemo, Number.isFinite(demoStage) ? demoStage : 1);
-  const input = new InputManager(canvas, world);
+  void fetch("/manus-storage/xonix-title-hero_3e08153a.jpg")
+    .then((response) => response.blob())
+    .then((blob) => createImageBitmap(blob))
+    .then((image) => world.renderer.setTitleArt(image))
+    .catch(() => {
+      // The text-and-vector fallback title remains usable if the hero art is unavailable.
+    });
+  const music = new MusicManager((title) => world.setCurrentTrack(title));
+  const sfx = new SfxManager();
+  let lastSoundEventId = 0;
+  const syncMusic = () => {
+    music.setEnabled(world.musicEnabled);
+    music.ensurePlaying();
+  };
+  const syncSfx = () => {
+    sfx.setEnabled(world.sfxEnabled);
+    if (world.soundEvent && world.soundEvent.id !== lastSoundEventId) {
+      lastSoundEventId = world.soundEvent.id;
+      sfx.play(world.soundEvent.name);
+    }
+  };
+  const input = new InputManager(canvas, {
+    requestDirection: (direction) => { world.requestDirection(direction); syncMusic(); syncSfx(); },
+    confirm: () => { world.confirm(); syncMusic(); syncSfx(); },
+    togglePause: () => world.togglePause(),
+    handleTap: (x, y) => { world.handleTap(x, y); syncMusic(); syncSfx(); },
+    handleTextInput: (key) => world.handleTextInput(key),
+  });
   const context = texture.getContext() as CanvasRenderingContext2D;
   let disposed = false;
 
@@ -67,6 +96,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
     if (disposed) return;
     resizeCamera();
     world.update(scene.getEngine().getDeltaTime() / 1000);
+    syncSfx();
     world.render(context);
     texture.update(false);
   });
@@ -76,6 +106,8 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
     dispose: () => {
       disposed = true;
       input.dispose();
+      music.dispose();
+      sfx.dispose();
       scene.dispose();
     },
   };
