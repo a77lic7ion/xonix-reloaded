@@ -13,6 +13,7 @@ export const SURFACE = {
   titleSkillUp: { x: 562, y: 592, width: 90, height: 62 },
   gameOverConfirm: { x: 455, y: 704, width: 370, height: 72 },
   settings: { x: 1052, y: 856, width: 148, height: 50 },
+  settingsHit: { x: 920, y: 828, width: 300, height: 110 },
   settingsClose: { x: 838, y: 236, width: 36, height: 36 },
   settingsMusic: { x: 420, y: 390, width: 440, height: 68 },
   settingsSfx: { x: 420, y: 474, width: 440, height: 68 },
@@ -132,7 +133,7 @@ export class CanvasRenderer {
     const values = [["SCORE", world.score.toString().padStart(6, "0")], ["LIVES", String(world.lives)], ["CAPTURED", `${Math.floor(world.claimed * 100)}%`], ["TIME", `${Math.max(0, Math.ceil(world.timeRemaining))}s`]];
     values.forEach(([label, value], index) => { const x = 88 + index * 230; text(ctx, label, x, 878, C.muted, 13, "left", 700); text(ctx, value, x, y, label === "CAPTURED" ? palette.rail : C.white, 22, "left", 800); });
     text(ctx, palette.label, 1004, 878, palette.rail, 12, "left", 700); text(ctx, `STAGE ${String(world.level).padStart(2, "0")}`, 1004, 898, C.muted, 13, "left", 700);
-    ctx.fillStyle = `${palette.rail}22`; roundRect(ctx, SURFACE.settings.x, SURFACE.settings.y, SURFACE.settings.width, SURFACE.settings.height, 12); ctx.fill(); ctx.strokeStyle = `${palette.rail}88`; ctx.lineWidth = 1.5; ctx.stroke(); text(ctx, "⚙ SETTINGS", SURFACE.settings.x + 74, 888, C.white, 12, "center", 700);
+    ctx.fillStyle = `${palette.rail}22`; roundRect(ctx, SURFACE.settings.x, SURFACE.settings.y, SURFACE.settings.width, SURFACE.settings.height, 12); ctx.fill(); ctx.strokeStyle = `${palette.rail}88`; ctx.lineWidth = 1.5; ctx.stroke(); text(ctx, "⚙ SETTINGS", SURFACE.settings.x + 74, 881, C.white, 12, "center", 700); text(ctx, "ESC", SURFACE.settings.x + 74, 900, palette.rail, 10, "center", 800);
   }
 
   private effect(ctx: CanvasRenderingContext2D, world: GameWorld, effect: GameEffect | null) {
@@ -163,7 +164,7 @@ export class CanvasRenderer {
     if (settingsOpen) { if (inside(x, y, SURFACE.settingsClose)) return "closeSettings" as const; if (inside(x, y, SURFACE.settingsMusic)) return "toggleMusic" as const; if (inside(x, y, SURFACE.settingsSfx)) return "toggleSfx" as const; if (inside(x, y, SURFACE.settingsMenu)) return "mainMenu" as const; return null; }
     if (mode === "title") { if (inside(x, y, SURFACE.titleSkillDown)) return "skillDown" as const; if (inside(x, y, SURFACE.titleSkillUp)) return "skillUp" as const; return "start" as const; }
     if (mode === "gameOver" && inside(x, y, SURFACE.gameOverConfirm)) return "confirm" as const;
-    if (inside(x, y, SURFACE.settings)) return "settings" as const;
+    if (inside(x, y, SURFACE.settingsHit)) return "settings" as const;
     return null;
   }
 }

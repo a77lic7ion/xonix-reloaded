@@ -31,4 +31,10 @@
 - [x] Prepare selected effects for durable web delivery.
 - [x] Connect effects to gameplay and interface events through the SFX setting.
 - [x] Verify mixed music/SFX behaviour on desktop and mobile, then save a checkpoint.
-- [ ] Update a77lic7ion/xonix-reloaded with all verified media and sound-effect changes.
+- [x] Update a77lic7ion/xonix-reloaded with all verified media and sound-effect changes.
+- [x] Define capture and BUSTED shake intensity, duration, and haptic patterns.
+- [x] Implement camera shake and supported-device vibration feedback.
+- [x] Verify reduced-motion-safe feedback on desktop and mobile, then save a checkpoint.
+- [x] Inspect and correct the Settings hit area and Escape-key behaviour.
+- [x] Verify pointer and Escape access to Settings on desktop and mobile, then save a checkpoint.
+- [ ] Push the latest Settings accessibility revision to a77lic7ion/xonix-reloaded.

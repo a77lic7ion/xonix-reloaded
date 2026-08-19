@@ -8,6 +8,7 @@ export interface InputTarget {
   requestDirection(direction: Direction): void;
   confirm(): void;
   togglePause(): void;
+  toggleSettings(): void;
   handleTap(x: number, y: number): void;
   handleTextInput(key: string): boolean;
 }
@@ -58,7 +59,7 @@ export class InputManager {
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        this.target.togglePause();
+        this.target.toggleSettings();
       }
     };
 

@@ -13,6 +13,7 @@ import { GameWorld } from "./GameWorld";
 import { InputManager } from "./InputManager";
 import { MusicManager } from "./MusicManager";
 import { SfxManager } from "./SfxManager";
+import { FeedbackManager } from "./FeedbackManager";
 import { SURFACE } from "./CanvasRenderer";
 
 export interface GameHandle {
@@ -58,6 +59,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
     });
   const music = new MusicManager((title) => world.setCurrentTrack(title));
   const sfx = new SfxManager();
+  const feedback = new FeedbackManager();
   let lastSoundEventId = 0;
   const syncMusic = () => {
     music.setEnabled(world.musicEnabled);
@@ -70,10 +72,15 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
       sfx.play(world.soundEvent.name);
     }
   };
+  const syncFeedback = () => {
+    feedback.setEnabled(world.sfxEnabled);
+    feedback.consume(world.effect);
+  };
   const input = new InputManager(canvas, {
     requestDirection: (direction) => { world.requestDirection(direction); syncMusic(); syncSfx(); },
     confirm: () => { world.confirm(); syncMusic(); syncSfx(); },
     togglePause: () => world.togglePause(),
+    toggleSettings: () => { world.toggleSettings(); syncMusic(); syncSfx(); },
     handleTap: (x, y) => { world.handleTap(x, y); syncMusic(); syncSfx(); },
     handleTextInput: (key) => world.handleTextInput(key),
   });
@@ -85,18 +92,20 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
     const frameRatio = 4 / 3;
     const viewWidth = ratio >= frameRatio ? ratio : frameRatio;
     const viewHeight = ratio >= frameRatio ? 1 : frameRatio / ratio;
-    camera.orthoLeft = -viewWidth / 2;
-    camera.orthoRight = viewWidth / 2;
-    camera.orthoTop = viewHeight / 2;
-    camera.orthoBottom = -viewHeight / 2;
+    const shake = feedback.offset(world.visualTime);
+    camera.orthoLeft = -viewWidth / 2 + shake.x;
+    camera.orthoRight = viewWidth / 2 + shake.x;
+    camera.orthoTop = viewHeight / 2 + shake.y;
+    camera.orthoBottom = -viewHeight / 2 + shake.y;
   };
   resizeCamera();
 
   scene.onBeforeRenderObservable.add(() => {
     if (disposed) return;
-    resizeCamera();
     world.update(scene.getEngine().getDeltaTime() / 1000);
     syncSfx();
+    syncFeedback();
+    resizeCamera();
     world.render(context);
     texture.update(false);
   });
@@ -108,6 +117,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
       input.dispose();
       music.dispose();
       sfx.dispose();
+      feedback.dispose();
       scene.dispose();
     },
   };

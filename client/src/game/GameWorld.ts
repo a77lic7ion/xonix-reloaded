@@ -161,6 +161,12 @@ export class GameWorld {
     else if (this.mode === "paused") this.mode = "playing";
   }
 
+  toggleSettings() {
+    if (this.mode === "title") return;
+    this.settingsOpen = !this.settingsOpen;
+    this.emitSfx("ui");
+  }
+
   handleTextInput(key: string) {
     if (this.mode !== "gameOver" || !this.qualifiesForHighScore) return false;
     if (key === "Backspace") {
@@ -197,13 +203,11 @@ export class GameWorld {
       return;
     }
     if (action === "settings") {
-      this.settingsOpen = true;
-      this.emitSfx("ui");
+      this.toggleSettings();
       return;
     }
     if (action === "closeSettings") {
-      this.settingsOpen = false;
-      this.emitSfx("ui");
+      this.toggleSettings();
       return;
     }
     if (action === "toggleMusic") {
