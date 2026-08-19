@@ -1,0 +1,25 @@
+# Original Xonix Layout Revision
+
+- [x] Collect and inspect original Xonix gameplay screenshots from reliable archival sources.
+- [x] Document the original screen proportions, playfield placement, HUD labels, colours, and title/game-over layout.
+- [x] Translate the original DOS composition into a readable full-height mobile game-frame specification.
+- [x] Replace the current portrait instrument composition with the original-style game screen scaled for readability.
+- [x] Slow the grid-step cadence and enlarge player and enemy markers for clear mobile viewing.
+- [x] Verify the revised layout against references on desktop and mobile, then save a new checkpoint.
+- [x] Prepare concise Google Flow Music prompts for title, gameplay, escalation, and game-over states.
+- [x] Inspect the live original Xonix build’s title, live field, HUD, and level-transition behaviour.
+- [x] Apply only evidence-based fidelity corrections identified from the live original build.
+- [x] Verify and checkpoint the live-reference alignment revision.
+- [x] Measure original skill-1 movement and enemy cadence from the live DOS build.
+- [x] Specify the 320×200 internal renderer and responsive nearest-neighbour scaling.
+- [x] Rework the game surface to a 320×200 CGA-style internal resolution with responsive nearest-neighbour scaling.
+- [x] Add keyboard arrow controls while retaining swipe support and no on-screen directional dock.
+- [x] Verify the updated speed and responsive pixel treatment, then create a checkpoint.
+- [x] Define HD colour, typography, entity-shape, particle, and toast-feedback rules.
+- [x] Implement high-resolution rendering, modern line work, distinct entities, particles, and closure animation.
+- [x] Add BEGIN, CLOSED, ALMOST THERE, BUSTED, and NEXT STAGE feedback states.
+- [x] Verify the HD presentation on desktop and mobile, then create a checkpoint.
+- [x] Define the centred X marker, stage biome progression, and settings-menu interaction rules.
+- [x] Implement the X player, progressive palettes, and settings menu with music/SFX placeholders and main-menu return.
+- [x] Verify biome transitions and settings actions on desktop and mobile, then create a checkpoint.
+- [ ] Upload the verified completed project source to a77lic7ion/xonix-reloaded.

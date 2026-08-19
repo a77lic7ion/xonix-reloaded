@@ -1,0 +1,82 @@
+// Liquid Blueprint reminder: Babylon presents one sharp, framed 2D instrument surface with all rules owned by GameWorld.
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Engine } from "@babylonjs/core/Engines/engine";
+import { Scene } from "@babylonjs/core/scene";
+import { Camera } from "@babylonjs/core/Cameras/camera";
+import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { GameWorld } from "./GameWorld";
+import { InputManager } from "./InputManager";
+import { SURFACE } from "./CanvasRenderer";
+
+export interface GameHandle {
+  scene: Scene;
+  dispose(): void;
+}
+
+export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement): Promise<GameHandle> {
+  const scene = new Scene(engine);
+  scene.clearColor = new Color4(0, 0, 0, 1);
+
+  const camera = new FreeCamera("xonix-camera", new Vector3(0, 0, -10), scene);
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.setTarget(Vector3.Zero());
+  camera.minZ = 0.1;
+  camera.maxZ = 100;
+  scene.activeCamera = camera;
+
+  const texture = new DynamicTexture("xonix-surface", { width: SURFACE.width, height: SURFACE.height }, scene, false);
+  texture.hasAlpha = false;
+  texture.updateSamplingMode(Texture.BILINEAR_SAMPLINGMODE);
+  texture.vScale = -1;
+  texture.vOffset = 1;
+  const material = new StandardMaterial("xonix-surface-material", scene);
+  material.diffuseTexture = texture;
+  material.emissiveTexture = texture;
+  material.specularColor = new Color3(0, 0, 0);
+  material.disableLighting = true;
+  material.backFaceCulling = false;
+  const plane = MeshBuilder.CreatePlane("xonix-surface-plane", { width: 4 / 3, height: 1 }, scene);
+  plane.material = material;
+
+  const params = new URLSearchParams(window.location.search);
+  const isDemo = params.has("demo");
+  const demoStage = Number(params.get("stage") ?? "1");
+  const world = new GameWorld(isDemo, Number.isFinite(demoStage) ? demoStage : 1);
+  const input = new InputManager(canvas, world);
+  const context = texture.getContext() as CanvasRenderingContext2D;
+  let disposed = false;
+
+  const resizeCamera = () => {
+    const ratio = engine.getRenderWidth() / Math.max(1, engine.getRenderHeight());
+    const frameRatio = 4 / 3;
+    const viewWidth = ratio >= frameRatio ? ratio : frameRatio;
+    const viewHeight = ratio >= frameRatio ? 1 : frameRatio / ratio;
+    camera.orthoLeft = -viewWidth / 2;
+    camera.orthoRight = viewWidth / 2;
+    camera.orthoTop = viewHeight / 2;
+    camera.orthoBottom = -viewHeight / 2;
+  };
+  resizeCamera();
+
+  scene.onBeforeRenderObservable.add(() => {
+    if (disposed) return;
+    resizeCamera();
+    world.update(scene.getEngine().getDeltaTime() / 1000);
+    world.render(context);
+    texture.update(false);
+  });
+
+  return {
+    scene,
+    dispose: () => {
+      disposed = true;
+      input.dispose();
+      scene.dispose();
+    },
+  };
+}
